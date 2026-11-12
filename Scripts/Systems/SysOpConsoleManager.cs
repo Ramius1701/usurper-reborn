@@ -204,6 +204,9 @@ namespace UsurperRemake.Systems
                 case "E":
                     await ToggleTelemetryPrompt(sqlBackend);
                     break;
+                case "G":
+                    await ToggleBugReportUpload(sqlBackend);
+                    break;
                 case "I":
                     await SetIdleTimeout();
                     break;
@@ -335,7 +338,8 @@ namespace UsurperRemake.Systems
             terminal.SetColor("bright_cyan");
             terminal.WriteLine(" Settings:");
             SysOpMenuRow(("5", "Difficulty"), ("6", "MOTD"), ("I", $"Idle:{DoorMode.IdleTimeoutMinutes}m"), ("T", "Theme"),
-                ("E", GameConfig.TelemetryPromptEnabled ? "Telemetry:ON" : "Telemetry:OFF")); // 1.2.7
+                ("E", GameConfig.TelemetryPromptEnabled ? "Telemetry:ON" : "Telemetry:OFF"), // 1.2.7
+                ("G", GameConfig.BugReportUploadEnabled ? "BugSend:ON" : "BugSend:OFF"));
             terminal.Write(" ");
             terminal.SetColor("darkgray"); terminal.Write("[");
             terminal.SetColor("bright_yellow"); terminal.Write("O");
@@ -1457,6 +1461,28 @@ namespace UsurperRemake.Systems
                 terminal.WriteLine(" sent and this BBS's id are deleted.");
             }
             DebugLogger.Instance.LogInfo("SYSOP", $"Telemetry prompt {(GameConfig.TelemetryPromptEnabled ? "enabled" : "disabled")}");
+            await terminal.PressAnyKey();
+        }
+
+        /// <summary>The bug report upload switch (server_config bug_report_upload), the same setting the web
+        /// admin edits. Off keeps ! reports in bug_reports/ on this machine.</summary>
+        private async Task ToggleBugReportUpload(SqlSaveBackend sqlBackend)
+        {
+            bool on = !GameConfig.BugReportUploadEnabled;
+            sqlBackend.SetServerConfig(ServerSettingsRegistry.BugReportUploadKey, on ? "true" : "false", DoorMode.SessionInfo?.UserName ?? "sysop");
+            terminal.WriteLine("");
+            if (GameConfig.BugReportUploadEnabled)
+            {
+                terminal.SetColor("bright_green");
+                terminal.WriteLine(" Bug reports are saved to bug_reports/ and sent to the developers");
+                terminal.WriteLine(" through usurper-reborn.net.");
+            }
+            else
+            {
+                terminal.SetColor("red");
+                terminal.WriteLine(" Bug reports are only saved to bug_reports/ for you; nothing is sent.");
+            }
+            DebugLogger.Instance.LogInfo("SYSOP", $"Bug report upload {(GameConfig.BugReportUploadEnabled ? "enabled" : "disabled")}");
             await terminal.PressAnyKey();
         }
 
