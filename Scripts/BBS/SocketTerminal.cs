@@ -64,6 +64,11 @@ namespace UsurperRemake.BBS
         [DllImport("ws2_32.dll", SetLastError = true)]
         private static extern int recv(IntPtr socket, byte[] buf, int len, int flags);
 
+        // FIONREAD: how many bytes are waiting, without blocking.
+        [DllImport("ws2_32.dll", SetLastError = true)]
+        private static extern int ioctlsocket(IntPtr socket, int cmd, ref uint argp);
+        private const int FIONREAD = 0x4004667F;
+
         [DllImport("ws2_32.dll", SetLastError = true)]
         private static extern int WSAStartup(ushort wVersionRequested, byte[] lpWSAData);
 
@@ -1065,9 +1070,14 @@ namespace UsurperRemake.BBS
         {
             if (!_usingNativeIO || _rawSocketHandle == IntPtr.Zero) return;
             var buf = new byte[1];
-            // Non-blocking recv — consume any \r, \n, or IAC bytes sitting in the buffer
+            // Consume any \r, \n, or IAC bytes already sitting in the buffer. The inherited
+            // socket may be in blocking mode (it is from RedialBBS and other .NET BBSes), so only
+            // peek at bytes FIONREAD says are there: a blocking peek waited for the player's next
+            // key, and when that key was Enter it was swallowed here.
             for (int i = 0; i < 10; i++) // Max 10 bytes to prevent infinite loop
             {
+                uint waiting = 0;
+                if (ioctlsocket(_rawSocketHandle, FIONREAD, ref waiting) != 0 || waiting == 0) break; // Nothing in buffer
                 int n = recv(_rawSocketHandle, buf, 1, 2); // MSG_PEEK = 2
                 if (n <= 0) break; // Nothing in buffer
                 if (buf[0] == '\r' || buf[0] == '\n' || buf[0] == 0xFF || buf[0] == 0)
