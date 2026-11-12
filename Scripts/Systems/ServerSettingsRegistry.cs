@@ -27,6 +27,7 @@ namespace UsurperRemake.Systems
 
         /// <summary>1.2.7: the server_config key of the telemetry operator switch.</summary>
         public const string TelemetryPromptKey = "telemetry_prompt";
+        public const string BugReportUploadKey = "bug_report_upload";
 
         public class ServerSettingDescriptor
         {
@@ -175,6 +176,18 @@ namespace UsurperRemake.Systems
                 ChangeImpact = "Live. Players are asked at their next login. Turning it off deletes the rows not yet sent and the id at once (or at the next start if the queue is busy).",
                 CurrentValue = () => GameConfig.TelemetryPromptEnabled ? "true" : "false",
                 Apply = v => TelemetryConsent.ApplyOperatorSwitch(ParseBool(v))
+            },
+            new ServerSettingDescriptor
+            {
+                Key = BugReportUploadKey,
+                Label = "Send Bug Reports to the Developers",
+                Category = "Privacy",
+                Type = SettingType.Bool,
+                DefaultValue = "true",
+                Description = "When ON, a bug report made with the in-game ! key is saved to bug_reports/ and also sent to usurper-reborn.net, which passes it to the developers (the report includes the player's name and game details). When OFF, it is only saved to bug_reports/ for the operator, and nothing is sent.",
+                ChangeImpact = "Live, takes effect on the next bug report.",
+                CurrentValue = () => GameConfig.BugReportUploadEnabled ? "true" : "false",
+                Apply = v => GameConfig.BugReportUploadEnabled = ParseBool(v)
             },
 
             // ============= COMMUNICATION =============

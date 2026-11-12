@@ -203,6 +203,14 @@ public static partial class GameConfig
     public static bool TelemetryPromptEnabled { get; set; } = false;
 
     /// <summary>
+    /// Whether the in-game bug report (the ! key) is also sent to the developers through
+    /// usurper-reborn.net (server_config key bug_report_upload, edited in the web admin and the SysOp
+    /// console). On by default, as before. When off the report is only saved to bug_reports/ for the
+    /// SysOp, and nothing leaves the machine.
+    /// </summary>
+    public static bool BugReportUploadEnabled { get; set; } = true;
+
+    /// <summary>
     /// 1.2.8 difficulty pass: a healing potion heals at least ScaledPotionMaxHPFraction of MaxHP, of the
     /// character whose level the flat heal uses (PotionBonus.BaseHeal and AverageHeal). Default on. The
     /// setter is internal: it is not a sysop setting; tests and the balance simulator turn it off to
