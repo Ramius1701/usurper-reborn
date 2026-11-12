@@ -91,8 +91,9 @@ public static class BugReportSystem
         // Always save locally
         string localPath = SaveReportLocally(description, diagnostics);
 
-        // Post to Discord webhook
-        bool discordSent = await PostToDiscord(description, diagnostics);
+        // Post to Discord webhook, unless the operator keeps bug reports on this machine
+        bool upload = GameConfig.BugReportUploadEnabled;
+        bool discordSent = upload && await PostToDiscord(description, diagnostics);
 
         // Show results
         terminal.WriteLine("");
@@ -109,7 +110,8 @@ public static class BugReportSystem
         else
         {
             terminal.SetColor("yellow");
-            terminal.WriteLine(Loc.Get("bug_report.send_failed"));
+            if (upload)
+                terminal.WriteLine(Loc.Get("bug_report.send_failed"));
             if (localPath != null)
             {
                 terminal.WriteLine(Loc.Get("bug_report.saved_sysop_forward"));
